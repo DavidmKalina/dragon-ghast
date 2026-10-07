@@ -1,0 +1,44 @@
+plugins {
+	id 'java'
+	id 'xyz.jpenilla.run-paper' version '3.1.0'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = 'PaperMC'
+		url = 'https://repo.papermc.io/repository/maven-public/'
+	}
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	compileOnly "io.papermc.paper:paper-api:${project.paper_api_version}"
+}
+
+processResources {
+	def version = project.version
+	def minecraftVersion = project.minecraft_version
+	inputs.property "version", version
+	inputs.property "minecraft_version", minecraftVersion
+
+	filesMatching("plugin.yml") {
+		expand "version": version, "minecraft_version": minecraftVersion
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+// Starts a local Paper test server with this plugin loaded: ./gradlew runServer
+tasks.named('runServer') {
+	minecraftVersion(project.minecraft_version)
+	jvmArgs('-Xms2G', '-Xmx2G')
+}

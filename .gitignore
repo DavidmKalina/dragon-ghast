@@ -1,0 +1,9 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.vscode/
+run/
+hs_err_*.log
+*.hprof

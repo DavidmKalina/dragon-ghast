@@ -1,0 +1,5 @@
+name: GhastBreath
+version: '${version}'
+main: com.ghastbreath.GhastBreathPlugin
+api-version: '${minecraft_version}'
+description: Give a happy ghast dragon's breath to make it fly faster and look like a regular ghast.

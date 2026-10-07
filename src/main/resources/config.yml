@@ -1,0 +1,14 @@
+# Right-click a grown happy ghast with this item to change it for good. One is used up (a glass bottle
+# comes back for bottled items like dragon's breath).
+item: DRAGON_BREATH
+
+# How much faster a changed ghast flies while someone rides it (2.0 = twice as fast). It only applies while
+# ridden, so it doesn't race around on its own.
+ridden-speed-multiplier: 2.0
+
+# Changed ghasts wear a regular ghast's face (needs the server resource pack; players without it see a normal
+# happy ghast). Harnesses still show and work as usual.
+ghast-look: true
+
+# Faint purple dragon's breath drifting off changed ghasts, and a wake behind them when they fly fast.
+particles: true
