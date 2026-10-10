@@ -1,4 +1,5 @@
-"""Builds GhastBreath's resource pack files into fiery-wings' pack folder (the one pack the server sends).
+"""Builds GhastBreath's resource pack files into its pack/ folder (resource-pack/tools/build_pack.py puts every
+plugin's pack/ folder into the one pack the server sends).
 
 - textures/entity/equipment/happy_ghast_body/ghast_face.png: the regular ghast's body, laid out for the
   happy ghast harness model. That model's 16x16x16 box (texture offset 0,0, 64x64 map, drawn here at 2x
@@ -8,8 +9,7 @@
 - equipment/ghast_<colour>_harness.json: that body with the vanilla harness drawn over it.
 
 Run: python make_pack_assets.py [pack-folder]   (needs Pillow and the 26.3 client jar in the Fabric Loom cache)
-pack-folder is the resource pack's source folder (the one holding pack.mcmeta and assets/); by default the
-sibling fiery-wings project's.
+pack-folder is the folder holding assets/; by default this project's pack/.
 """
 import io
 import json
@@ -20,7 +20,7 @@ import zipfile
 from PIL import Image
 
 CLIENT_JAR = pathlib.Path.home() / ".gradle/caches/fabric-loom/26.3/minecraft-client.jar"
-DEFAULT_PACK = pathlib.Path(__file__).resolve().parents[2] / "fiery-wings/src/main/resources/pack"
+DEFAULT_PACK = pathlib.Path(__file__).resolve().parents[1] / "pack"
 PACK = (pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PACK) / "assets/ghastbreath"
 COLOURS = ["white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray",
            "cyan", "purple", "blue", "brown", "green", "red", "black"]

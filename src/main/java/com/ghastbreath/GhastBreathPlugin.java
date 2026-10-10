@@ -6,13 +6,10 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Equippable;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import io.papermc.paper.event.player.PlayerTrackEntityEvent;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -37,7 +34,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -60,8 +56,11 @@ public class GhastBreathPlugin extends JavaPlugin implements Listener {
 	private static final String NAMESPACE = "ghastbreath";
 	/** The look of a changed ghast with no harness: just the regular ghast body. */
 	private static final Key BARE_LOOK = Key.key(NAMESPACE, "ghast_face");
-	/** The resource pack holding the looks: FieryWings sends it, under this id (see its PackServer). */
-	private static final UUID LOOK_PACK = UUID.nameUUIDFromBytes("fierywings:pack".getBytes(StandardCharsets.UTF_8));
+	/**
+	 * The looks are in the server resource pack, which the ResourcePack plugin sends. It sets this player metadata
+	 * while a player's game has the pack loaded.
+	 */
+	private static final String PACK_LOADED = "resource-pack-loaded";
 
 	/** On the ghast: set once it has had the breath. */
 	private NamespacedKey breathedKey;
@@ -73,8 +72,6 @@ public class GhastBreathPlugin extends JavaPlugin implements Listener {
 
 	/** Changed ghasts in loaded chunks. */
 	private final Map<UUID, HappyGhast> loaded = new HashMap<>();
-	/** Players whose game has the server resource pack loaded. */
-	private final Set<UUID> packLoaded = new HashSet<>();
 
 	@Override
 	public void onEnable() {
@@ -251,7 +248,7 @@ public class GhastBreathPlugin extends JavaPlugin implements Listener {
 	}
 
 	private void sendLook(HappyGhast ghast, Player viewer) {
-		if (!ghastLook || !ghast.isValid() || !viewer.isOnline() || !packLoaded.contains(viewer.getUniqueId())) {
+		if (!ghastLook || !ghast.isValid() || !viewer.isOnline() || !viewer.hasMetadata(PACK_LOADED)) {
 			return;
 		}
 		ItemStack look = lookFor(ghast);
@@ -283,30 +280,18 @@ public class GhastBreathPlugin extends JavaPlugin implements Listener {
 		}
 	}
 
+	/** The pack just finished loading: show the look on the changed ghasts this player can already see. */
 	@EventHandler
 	public void onPackStatus(PlayerResourcePackStatusEvent event) {
-		if (!LOOK_PACK.equals(event.getID())) {
-			return; // some other pack (the server can send more than one)
-		}
 		Player player = event.getPlayer();
-		switch (event.getStatus()) {
-			case SUCCESSFULLY_LOADED -> {
-				packLoaded.add(player.getUniqueId());
-				for (HappyGhast ghast : loaded.values()) {
-					if (ghast.getTrackedBy().contains(player)) {
-						sendLook(ghast, player);
-					}
-				}
-			}
-			case DECLINED, FAILED_DOWNLOAD, INVALID_URL, FAILED_RELOAD, DISCARDED -> packLoaded.remove(player.getUniqueId());
-			default -> {
+		if (event.getStatus() != PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED || !player.hasMetadata(PACK_LOADED)) {
+			return;
+		}
+		for (HappyGhast ghast : loaded.values()) {
+			if (ghast.getTrackedBy().contains(player)) {
+				sendLook(ghast, player);
 			}
 		}
-	}
-
-	@EventHandler
-	public void onQuit(PlayerQuitEvent event) {
-		packLoaded.remove(event.getPlayer().getUniqueId());
 	}
 
 	// ---- Keeping track of loaded changed ghasts ----
